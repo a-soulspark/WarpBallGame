@@ -1,69 +1,303 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=16 format=2]
 
 [ext_resource path="res://icon.png" type="Texture" id=1]
-[ext_resource path="res://Player.gd" type="Script" id=2]
+[ext_resource path="res://Objects/Player/Player.gd" type="Script" id=2]
+[ext_resource path="res://Objects/Player/player.png" type="Texture" id=3]
+[ext_resource path="res://Objects/Player/WarpBall/WarpBall.gd" type="Script" id=4]
 
-[sub_resource type="RectangleShape2D" id=1]
-extents = Vector2( 32, 32 )
+[sub_resource type="Gradient" id=1]
+colors = PoolColorArray( 0.0733948, 0.284008, 0.289063, 1, 0.694885, 0.766073, 0.773438, 1 )
+
+[sub_resource type="Shader" id=10]
+code = "shader_type canvas_item;
+
+uniform float target_r : hint_range(0, 1.0);
+uniform vec4 replace_color : hint_color;
+
+void fragment() {
+	vec4 tex = texture(TEXTURE, UV);
+	if (abs(target_r - tex.r) < 0.01) tex = replace_color;
+	COLOR = tex;
+}"
+custom_defines = ""
+
+[sub_resource type="ShaderMaterial" id=11]
+shader = SubResource( 10 )
+shader_param/target_r = 0.32
+shader_param/replace_color = Color( 0.266667, 1, 0.776471, 1 )
 
 [sub_resource type="RectangleShape2D" id=2]
-extents = Vector2( 33.0749, 32 )
+extents = Vector2( 7, 15 )
+
+[sub_resource type="PhysicsMaterial" id=3]
+friction = 0.0
+bounce = 0.9
+
+[sub_resource type="CircleShape2D" id=4]
+radius = 3.0
+
+[sub_resource type="Shader" id=5]
+code = "shader_type canvas_item;
+
+void fragment() {
+	COLOR = COLOR * round(1.0 - length(UV - vec2(0.5)));
+}"
+custom_defines = ""
+
+[sub_resource type="ShaderMaterial" id=6]
+shader = SubResource( 5 )
+
+[sub_resource type="Shader" id=7]
+code = "shader_type canvas_item;
+
+void fragment() { COLOR = COLOR; }"
+custom_defines = ""
+
+[sub_resource type="ShaderMaterial" id=8]
+shader = SubResource( 7 )
+
+[sub_resource type="RectangleShape2D" id=9]
+extents = Vector2( 32, 32 )
 
 [node name="World" type="Node2D"]
 
+[node name="BG" type="Line2D" parent="."]
+position = Vector2( 512, 0 )
+points = PoolVector2Array( 0, 1280, 0, -1280 )
+width = 1280.0
+gradient = SubResource( 1 )
+
 [node name="Player" type="KinematicBody2D" parent="."]
-position = Vector2( 512, 160 )
+position = Vector2( 160, 192 )
+collision_layer = 2
 script = ExtResource( 2 )
 __meta__ = {
 "_edit_group_": true
 }
 
 [node name="Sprite" type="Sprite" parent="Player"]
-texture = ExtResource( 1 )
+material = SubResource( 11 )
+scale = Vector2( 2, 2 )
+texture = ExtResource( 3 )
 
 [node name="colisao" type="CollisionShape2D" parent="Player"]
-shape = SubResource( 1 )
+shape = SubResource( 2 )
+
+[node name="WarpBall" type="RigidBody2D" parent="Player"]
+visible = false
+collision_layer = 4
+mode = 2
+physics_material_override = SubResource( 3 )
+script = ExtResource( 4 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player/WarpBall"]
+shape = SubResource( 4 )
+
+[node name="Sprite" type="Sprite" parent="Player/WarpBall"]
+material = SubResource( 6 )
+scale = Vector2( 0.1, 0.1 )
+texture = ExtResource( 1 )
+
+[node name="Camera2D" type="Camera2D" parent="Player"]
+position = Vector2( 0, 24 )
+current = true
+limit_left = 0
+limit_right = 320
+limit_bottom = 240
+smoothing_enabled = true
 
 [node name="chao_e_parede" type="Node" parent="."]
 
 [node name="floor" type="StaticBody2D" parent="chao_e_parede"]
-position = Vector2( 512, 384 )
-scale = Vector2( 15.48, 1 )
+position = Vector2( 160, 224 )
+scale = Vector2( 5, 0.5 )
 __meta__ = {
 "_edit_group_": true
 }
 
 [node name="Sprite" type="Sprite" parent="chao_e_parede/floor"]
 modulate = Color( 0, 0, 0, 1 )
+material = SubResource( 8 )
 texture = ExtResource( 1 )
 
 [node name="colisao" type="CollisionShape2D" parent="chao_e_parede/floor"]
-shape = SubResource( 2 )
+shape = SubResource( 9 )
 
 [node name="floor2" type="StaticBody2D" parent="chao_e_parede"]
-position = Vector2( 864, 281.6 )
-scale = Vector2( 1.04, 0.6 )
+position = Vector2( 32, 168 )
+scale = Vector2( 1, 0.25 )
 __meta__ = {
 "_edit_group_": true
 }
 
 [node name="Sprite" type="Sprite" parent="chao_e_parede/floor2"]
 modulate = Color( 0, 0, 0, 1 )
+material = SubResource( 8 )
 texture = ExtResource( 1 )
 
 [node name="colisao" type="CollisionShape2D" parent="chao_e_parede/floor2"]
-shape = SubResource( 2 )
+shape = SubResource( 9 )
 
 [node name="floor3" type="StaticBody2D" parent="chao_e_parede"]
-position = Vector2( 160, 281.6 )
-scale = Vector2( 1.04, 0.6 )
+position = Vector2( 288, 168 )
+scale = Vector2( 1, 0.25 )
 __meta__ = {
-"_edit_group_": true
+"_edit_group_": true,
+"_editor_description_": "q"
 }
 
 [node name="Sprite" type="Sprite" parent="chao_e_parede/floor3"]
 modulate = Color( 0, 0, 0, 1 )
+material = SubResource( 8 )
 texture = ExtResource( 1 )
 
 [node name="colisao" type="CollisionShape2D" parent="chao_e_parede/floor3"]
-shape = SubResource( 2 )
+shape = SubResource( 9 )
+
+[node name="floor4" type="StaticBody2D" parent="chao_e_parede"]
+position = Vector2( 248, 144 )
+rotation = 1.57079
+scale = Vector2( 1, 0.25 )
+__meta__ = {
+"_edit_group_": true,
+"_editor_description_": "q"
+}
+
+[node name="Sprite" type="Sprite" parent="chao_e_parede/floor4"]
+modulate = Color( 0, 0, 0, 1 )
+material = SubResource( 8 )
+texture = ExtResource( 1 )
+
+[node name="colisao" type="CollisionShape2D" parent="chao_e_parede/floor4"]
+shape = SubResource( 9 )
+
+[node name="floor5" type="StaticBody2D" parent="chao_e_parede"]
+position = Vector2( 264, 104 )
+rotation = 3.14159
+scale = Vector2( 0.8, 0.3 )
+__meta__ = {
+"_edit_group_": true,
+"_editor_description_": "q"
+}
+
+[node name="Sprite" type="Sprite" parent="chao_e_parede/floor5"]
+modulate = Color( 0, 0, 0, 1 )
+material = SubResource( 8 )
+texture = ExtResource( 1 )
+
+[node name="colisao" type="CollisionShape2D" parent="chao_e_parede/floor5"]
+shape = SubResource( 9 )
+
+[node name="floor6" type="StaticBody2D" parent="chao_e_parede"]
+position = Vector2( 328, 88 )
+rotation = 4.71238
+scale = Vector2( 11.1, 0.3 )
+__meta__ = {
+"_edit_group_": true,
+"_editor_description_": "q"
+}
+
+[node name="Sprite" type="Sprite" parent="chao_e_parede/floor6"]
+modulate = Color( 0, 0, 0, 1 )
+material = SubResource( 8 )
+texture = ExtResource( 1 )
+
+[node name="colisao" type="CollisionShape2D" parent="chao_e_parede/floor6"]
+shape = SubResource( 9 )
+
+[node name="floor10" type="StaticBody2D" parent="chao_e_parede"]
+position = Vector2( -8.00003, 88 )
+rotation = 4.71238
+scale = Vector2( 11.1, 0.3 )
+__meta__ = {
+"_edit_group_": true,
+"_editor_description_": "q"
+}
+
+[node name="Sprite" type="Sprite" parent="chao_e_parede/floor10"]
+modulate = Color( 0, 0, 0, 1 )
+material = SubResource( 8 )
+texture = ExtResource( 1 )
+
+[node name="colisao" type="CollisionShape2D" parent="chao_e_parede/floor10"]
+shape = SubResource( 9 )
+
+[node name="floor7" type="StaticBody2D" parent="chao_e_parede"]
+position = Vector2( 160, 48 )
+rotation = 3.14159
+scale = Vector2( 0.8, 0.3 )
+__meta__ = {
+"_edit_group_": true,
+"_editor_description_": "q"
+}
+
+[node name="Sprite" type="Sprite" parent="chao_e_parede/floor7"]
+modulate = Color( 0, 0, 0, 1 )
+material = SubResource( 8 )
+texture = ExtResource( 1 )
+
+[node name="colisao" type="CollisionShape2D" parent="chao_e_parede/floor7"]
+shape = SubResource( 9 )
+
+[node name="floor11" type="StaticBody2D" parent="chao_e_parede"]
+position = Vector2( 160, -96 )
+rotation = 3.14159
+scale = Vector2( 0.8, 0.3 )
+__meta__ = {
+"_edit_group_": true,
+"_editor_description_": "q"
+}
+
+[node name="Sprite" type="Sprite" parent="chao_e_parede/floor11"]
+modulate = Color( 0, 0, 0, 1 )
+material = SubResource( 8 )
+texture = ExtResource( 1 )
+
+[node name="colisao" type="CollisionShape2D" parent="chao_e_parede/floor11"]
+shape = SubResource( 9 )
+
+[node name="floor8" type="StaticBody2D" parent="chao_e_parede"]
+position = Vector2( 192, 40 )
+rotation = 1.57079
+scale = Vector2( 0.7, 0.3 )
+__meta__ = {
+"_edit_group_": true,
+"_editor_description_": "q"
+}
+
+[node name="Sprite" type="Sprite" parent="chao_e_parede/floor8"]
+modulate = Color( 0, 0, 0, 1 )
+material = SubResource( 8 )
+texture = ExtResource( 1 )
+
+[node name="colisao" type="CollisionShape2D" parent="chao_e_parede/floor8"]
+shape = SubResource( 9 )
+
+[node name="floor9" type="StaticBody2D" parent="chao_e_parede"]
+position = Vector2( 136, 40 )
+rotation = 1.57079
+scale = Vector2( 0.7, 0.3 )
+__meta__ = {
+"_edit_group_": true,
+"_editor_description_": "q"
+}
+
+[node name="Sprite" type="Sprite" parent="chao_e_parede/floor9"]
+modulate = Color( 0, 0, 0, 1 )
+material = SubResource( 8 )
+texture = ExtResource( 1 )
+
+[node name="colisao" type="CollisionShape2D" parent="chao_e_parede/floor9"]
+shape = SubResource( 9 )
+
+[node name="Label" type="Label" parent="."]
+margin_left = 112.0
+margin_top = -168.0
+margin_right = 170.0
+margin_bottom = -154.0
+rect_scale = Vector2( 1.5, 1.5 )
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+text = "parabens"
+__meta__ = {
+"_edit_use_anchors_": false
+}
